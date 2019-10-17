@@ -7,3 +7,12 @@ I will make sure the code keeps maintained as long as this feature isn’t withi
 ## Installation
 Upload both folders in this repo to the WordPress plugins folder (/wp-content/plugins/).
 Another option is to create separate .zip files from both folders and upload them through the regular WordPress plugin installer.
+
+### Via svn
+You can use githubs SVN ("subversion") features to download the plugins.
+
+    # Linux shell
+    cd /path/to/your/wp-content/plugins
+    svn export https://github.com/JoryHogeveen/pods-address-maps.git/trunk/pods-maps
+    svn export https://github.com/JoryHogeveen/pods-address-maps.git/trunk/pods-adress-fields
+    # modify permissions, if needed (e.g. sudo chown www-data:www-data pods*)
