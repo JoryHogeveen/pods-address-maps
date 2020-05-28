@@ -163,8 +163,7 @@ jQuery( document ).ready( function ( $ ) {
 					} );
 					// Wait for the tinyMCE editor to load
 					var wait = setInterval( function () {
-						if ( tinyMCE.editors.length ) {
-							clearInterval( wait );
+						if ( typeof tinyMCE !== 'undefined' && tinyMCE.editors.length ) {							clearInterval( wait );
 							infowindowEditor = tinyMCE.get( fields.info_window.attr( 'id' ) );
 							// No need to instantly call podsMapsInfoWindow since this is already done from the textarea
 							infowindowEditor.on( 'change keyup', function () {
