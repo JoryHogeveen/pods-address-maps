@@ -7,3 +7,8 @@ I will make sure the code keeps maintained as long as this feature isn’t withi
 ## Installation
 Upload both folders in this repo to the WordPress plugins folder (/wp-content/plugins/).
 Another option is to create separate .zip files from both folders and upload them through the regular WordPress plugin installer.
+
+## You need an Google-Maps-API Key! 
+first get yours here: https://console.cloud.google.com/apis/
+then paste it in the plugin settings: /wp-admin/admin.php?page=pods-component-maps
+
