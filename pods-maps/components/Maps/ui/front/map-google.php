@@ -39,10 +39,29 @@ $attributes = PodsForm::merge_attributes( $attributes, $name, $type, $options );
 
 $map_options = array();
 
+if ( ! empty( $options['maps_center'] ) ) {
+	$map_options['center'] = (array) $options['maps_center'];
+} else {
+	$map_options['center'] = array( 41.850033, -87.6500523 ); // default (Chicago)
+}
+
+if ( isset( $options['maps_center_auto'] ) ) {
+	$map_options['center_auto'] = (bool) $options['maps_center_auto'];
+} else {
+	// Only auto-center if there is no fixed center position provided in the $options.
+	$map_options['center_auto'] = empty( $options['maps_center'] );//(int) pods_v( 'map_center_auto', Pods_Component_Maps::$options );
+}
+
 if ( ! empty( $options['maps_zoom'] ) ) {
 	$map_options['zoom'] = (int) $options['maps_zoom'];
 } else {
 	$map_options['zoom'] = (int) pods_v( 'map_zoom', Pods_Component_Maps::$options );
+}
+
+if ( isset( $options['maps_zoom_auto'] ) ) {
+	$map_options['zoom_auto'] = (bool) $options['maps_zoom_auto'];
+} else {
+	$map_options['zoom_auto'] = true;//(int) pods_v( 'map_zoom_auto', Pods_Component_Maps::$options );
 }
 
 if ( ! empty( $options['maps_type'] ) ) {
@@ -155,8 +174,10 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 		var mapCanvas = document.getElementById( '<?php echo esc_attr( $attributes['id'] . '-map-canvas' ); ?>' ),
 			values = $( '#<?php echo esc_attr( $attributes['id'] . '-map-canvas' ); ?>' ).attr('data-value'),
 			latlng = null,
+			autoCenter = <?php echo ( $map_options['center_auto'] ) ? 'true' : 'false' ?>,
+			autoZoom = <?php echo ( $map_options['zoom_auto'] ) ? 'true' : 'false' ?>,
 			mapOptions = {
-				center: new google.maps.LatLng( 41.850033, -87.6500523 ), // default (Chicago)
+				center: new google.maps.LatLng( <?php echo implode( ', ', $map_options['center'] ); ?> ),
 				marker: '<?php echo esc_attr( $map_options['marker'] ); ?>',
 				zoom: <?php echo absint( $map_options['zoom'] ); ?>,
 				mapTypeId: '<?php echo esc_attr( $map_options['type'] ); ?>',
@@ -177,7 +198,7 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 		//------------------------------------------------------------------------
 		// Initialize the map, set default center to the first item.
 		//
-		if ( values.length && values[0].hasOwnProperty('geo') ) {
+		if ( autoCenter && values.length && values[0].hasOwnProperty('geo') ) {
 			latlng = values[0].geo;
 			mapOptions.center = new google.maps.LatLng( latlng );
 		}
@@ -250,12 +271,16 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 
 		} );
 
-		if ( 1 < values.length ) {
+		if ( 1 < values.length && autoZoom ) {
 
 			// Automatic sizing for multiple markers.
 			map.fitBounds( bounds );
 			map.panToBounds( bounds );
-			mapOptions.center = map.getCenter();
+			if ( autoCenter ) {
+				mapOptions.center = map.getCenter();
+			} else {
+				map.setCenter( mapOptions.center );
+			}
 
 			var listener = google.maps.event.addListener( map, "idle", function () {
 				// If the current zoom is higher than the original zoom (due to fitBounds) set it to the original.
