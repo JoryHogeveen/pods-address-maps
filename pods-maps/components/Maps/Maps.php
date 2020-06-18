@@ -451,7 +451,7 @@ class Pods_Component_Maps extends PodsComponent {
 
 		// @todo: Validate based on address type ( lat / lon, address fields)
 
-		if ( ! $value ) {
+		if ( ! $value && ! pods_v( 'maps', $options ) ) {
 			return $errors;
 		}
 
@@ -482,6 +482,10 @@ class Pods_Component_Maps extends PodsComponent {
 	 * @return mixed
 	 */
 	public function filter_pods_ui_field_address_pre_save( $value, $type, $id, $name, $options, $fields, $pod, $params ) {
+
+		if ( ! pods_v( 'maps', $options ) ) {
+			return $value;
+		}
 
 		$org_value = $value;
 
