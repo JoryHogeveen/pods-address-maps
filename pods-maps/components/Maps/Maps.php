@@ -521,7 +521,7 @@ class Pods_Component_Maps extends PodsComponent {
 		if ( is_object( self::$provider ) ) {
 			$provider = get_class( self::$provider );
 			if ( method_exists( $provider, 'geocode_address' ) ) {
-				return $provider::geocode_address( $data, self::$api_key );
+				return $provider::geocode_address( $data );
 			}
 		}
 
@@ -538,7 +538,7 @@ class Pods_Component_Maps extends PodsComponent {
 		if ( is_object( self::$provider ) ) {
 			$provider = get_class( self::$provider );
 			if ( method_exists( $provider, 'geocode_address_to_latlng' ) ) {
-				return $provider::geocode_address_to_latlng( $data, self::$api_key );
+				return $provider::geocode_address_to_latlng( $data );
 			}
 		}
 
@@ -555,7 +555,7 @@ class Pods_Component_Maps extends PodsComponent {
 		if ( is_object( self::$provider ) ) {
 			$provider = get_class( self::$provider );
 			if ( method_exists( $provider, 'geocode_latlng_to_address' ) ) {
-				return $provider::geocode_latlng_to_address( $data, self::$api_key );
+				return $provider::geocode_latlng_to_address( $data );
 			}
 		}
 

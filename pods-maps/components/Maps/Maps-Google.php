@@ -4,9 +4,12 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 
 	public static $geocode_url = '';
 
+	public static $response = array();
+
 	public function __construct() {
 
-		self::$geocode_url = apply_filters( 'pods_maps_google_geocode_url', 'https://maps.googleapis.com/maps/api/geocode/json' );
+		$url = 'https://maps.googleapis.com/maps/api/geocode/json';
+		self::$geocode_url = apply_filters( 'pods_maps_google_geocode_url', $url );
 	}
 
 	/**
@@ -29,8 +32,15 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 	public function options( $options = array() ) {
 
 		$options['api_key'] = array(
-			'label'   => __( 'Maps API Key or Client ID', 'pods' ),
-			'help'    => __( 'help', 'pods' ),
+			'label'   => __( 'Maps JavaScript API Key or Client ID', 'pods' ),
+			'help'    => __( 'JavaScript API keys should be restricted by referer.', 'pods' ),
+			'default' => '',
+			'type'    => 'text',
+		);
+
+		$options['api_key_http'] = array(
+			'label'   => __( 'Maps HTTP API Key or Client ID', 'pods' ) . ' (' . __( 'Optional', 'pods' ) . ')',
+			'help'    => __( 'HTTP API keys should be restricted by the server IP address.', 'pods' ),
 			'default' => '',
 			'type'    => 'text',
 		);
@@ -159,6 +169,7 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 			'label'   => __( 'Enable scroll wheel?', 'pods' ),
 			'default' => 1,
 			'type'    => 'boolean',
+			'depends-on' => array( 'maps' => true ),
 		);
 
 		$options['maps_info_window'] = array(
@@ -476,11 +487,19 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 
 		$url = self::$geocode_url . '?' . $type . '=' . $data;
 
-		/*if ( ! empty( $api_key ) ) {
-			$url .= '&key=' . $api_key;
-		}*/
+		if ( ! $api_key ) {
+			if ( ! empty( Pods_Component_Maps::$options['api_key_http'] ) ) {
+				$api_key = Pods_Component_Maps::$options['api_key_http'];
+			} elseif ( Pods_Component_Maps::$api_key ) {
+				$api_key = Pods_Component_Maps::$api_key;
+			}
+		}
 
-		$post = wp_remote_post( $url );
+		if ( ! empty( $api_key ) ) {
+			$url .= '&key=' . $api_key;
+		}
+
+		$post = wp_remote_get( $url );
 
 		if ( ! empty( $post['body'] ) ) {
 			$data = json_decode( $post['body'], true );
@@ -490,12 +509,16 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 		}
 
 		// Try again once.
-		$post = wp_remote_post( $url );
+		$post = wp_remote_get( $url );
 
 		if ( ! empty( $post['body'] ) ) {
 			$data = json_decode( $post['body'], true );
+			self::$response = $data;
 			if ( ! empty( $data['results'][0] ) ) {
 				return $data['results'][0];
+			}
+			if ( is_super_admin() ) {
+				print_r( $post );die;
 			}
 		}
 
