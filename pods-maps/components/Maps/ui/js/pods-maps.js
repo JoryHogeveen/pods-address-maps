@@ -1,5 +1,5 @@
 
-if ( typeof PodsMaps == 'undefined' ) {
+if ( 'undefined' === typeof PodsMaps ) {
 	var PodsMaps = {};
 }
 
@@ -24,34 +24,34 @@ if ( typeof PodsMaps == 'undefined' ) {
 
 	PodsMaps.geocode = function( data ) {
 		PodsMaps.ajaxData.pods_maps_action = 'geocode';
-		PodsMaps.ajaxData.pods_maps_data = data;
+		PodsMaps.ajaxData.pods_maps_data   = data;
 		return PodsMaps.doAjaxPost();
 	};
 
 	PodsMaps.geocodeAddressToLatLng = function( data ) {
 		PodsMaps.ajaxData.pods_maps_action = 'geocode_address_to_latlng';
-		PodsMaps.ajaxData.pods_maps_data = data;
+		PodsMaps.ajaxData.pods_maps_data   = data;
 		return PodsMaps.doAjaxPost();
 	};
 
 	PodsMaps.geocodeLatLngToAddress = function( data ) {
 		PodsMaps.ajaxData.pods_maps_action = 'geocode_latlng_to_address';
-		PodsMaps.ajaxData.pods_maps_data = data;
+		PodsMaps.ajaxData.pods_maps_data   = data;
 		return PodsMaps.doAjaxPost();
 	};
 
 	PodsMaps.doAjaxPost = function() {
-		PodsMaps.ajaxData.action = 'pods_maps';
+		PodsMaps.ajaxData.action           = 'pods_maps';
 		PodsMaps.ajaxData._pods_maps_nonce = PodsMaps._nonce;
-		PodsMaps.doingAjax = true;
-		PodsMaps.ajaxResults = false;
+		PodsMaps.doingAjax                 = true;
+		PodsMaps.ajaxResults               = false;
 		$.post(
 			PodsMaps.ajaxurl,
 			PodsMaps.ajaxData,
 			function( response ) {
 				PodsMaps.ajaxData = {};
 				PodsMaps.doingAjax = false;
-				if ( typeof response.data != 'undefined' ) {
+				if ( 'undefined' !== typeof response.data ) {
 					PodsMaps.ajaxResults = response.data;
 					$(document).trigger('PodsMapsAjaxDone');
 					return response.data;
