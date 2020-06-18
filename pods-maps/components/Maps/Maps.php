@@ -490,7 +490,7 @@ class Pods_Component_Maps extends PodsComponent {
 		$org_value = $value;
 
 		// Get geocode from address fields
-		if ( isset( $value['address'] ) ) {
+		if ( ! empty( array_filter( $value['address'] ) ) ) {
 			$geocode = array();
 			if ( pods_v( 'maps_autocorrect', $options, 0 ) ) {
 				$address = self::geocode_address( $value['address'] );
