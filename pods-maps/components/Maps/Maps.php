@@ -58,25 +58,19 @@ class Pods_Component_Maps extends PodsComponent {
 
 		// Add Maps input
 		// do_action( 'pods_ui_field_address_input_view_extra', $view, $type, $name, $value, $options, $pod, $id );
-		add_action( 'pods_ui_field_address_input_view_extra', array(
-			$this,
-			'pods_ui_field_address_input_view_extra'
-		), 10, 7 );
+		add_action( 'pods_ui_field_address_input_view_extra', array( $this, 'action_pods_ui_field_address_input_view_extra' ), 10, 7 );
 
 		// Validate Address/Geo
 		// apply_filters( 'pods_ui_field_address_validate', $errors, $value, $type, $name, $options, $fields, $pod, $id, $params );
-		add_filter( 'pods_ui_field_address_validate', array( $this, 'pods_ui_field_address_validate' ), 10, 9 );
+		add_filter( 'pods_ui_field_address_validate', array( $this, 'filter_pods_ui_field_address_validate' ), 10, 9 );
 
 		// Add Address/Geo pre save
 		// apply_filters( 'pods_ui_field_address_pre_save', $value, $type, $id, $name, $options, $fields, $pod, $params );
-		add_filter( 'pods_ui_field_address_pre_save', array( $this, 'pods_ui_field_address_pre_save' ), 10, 8 );
+		add_filter( 'pods_ui_field_address_pre_save', array( $this, 'filter_pods_ui_field_address_pre_save' ), 10, 8 );
 
 		// Add or change the display value
 		// apply_filters( 'pods_ui_field_address_display_value', $output, $value, $view, $display_type, $name, $options, $pod, $id );
-		add_filter( 'pods_ui_field_address_display_value', array(
-			$this,
-			'pods_ui_field_address_display_value'
-		), 10, 8 );
+		add_filter( 'pods_ui_field_address_display_value', array( $this, 'filter_pods_ui_field_address_display_value' ), 10, 8 );
 
 		// Ajax call handler
 		add_action( 'wp_ajax_pods_maps', array( $this, 'ajax_handler' ) );
@@ -195,7 +189,11 @@ class Pods_Component_Maps extends PodsComponent {
 	 */
 	public function ajax_handler() {
 
-		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX || ! isset( $_POST['_pods_maps_nonce'] ) || ! wp_verify_nonce( $_POST['_pods_maps_nonce'], self::$nonce ) ) {
+		if (
+			! defined( 'DOING_AJAX' ) || ! DOING_AJAX
+			|| ! isset( $_POST['_pods_maps_nonce'] )
+			|| ! wp_verify_nonce( $_POST['_pods_maps_nonce'], self::$nonce )
+		) {
 			wp_send_json_error( __( 'Cheatin uh?', 'pods' ) );
 			die();
 		}
@@ -294,7 +292,7 @@ class Pods_Component_Maps extends PodsComponent {
 		$options['maps_autocorrect'] = array(
 			'label'      => __( 'Autocorrect Address during save', 'pods' ),
 			'depends-on' => array(
-				'maps' => true,
+				'maps'          => true,
 				$type . '_type' => array( 'address', 'text' )
 			),
 			'default'    => 0,
@@ -370,7 +368,7 @@ class Pods_Component_Maps extends PodsComponent {
 	 *
 	 * @return string
 	 */
-	public function pods_ui_field_address_display_value( $output, $value, $view, $display_type, $name, $options, $pod, $id ) {
+	public function filter_pods_ui_field_address_display_value( $output, $value, $view, $display_type, $name, $options, $pod, $id ) {
 
 		if ( pods_v( 'maps', $options ) && 'admin' !== pods_v( 'maps_display', $options ) ) {
 			$view     = '';
@@ -411,26 +409,27 @@ class Pods_Component_Maps extends PodsComponent {
 	 * @param $pod
 	 * @param $id
 	 */
-	public function pods_ui_field_address_input_view_extra( $view, $type, $name, $value, $options, $pod, $id ) {
+	public function action_pods_ui_field_address_input_view_extra( $view, $type, $name, $value, $options, $pod, $id ) {
 
-		if ( pods_v( 'maps', $options ) ) {
-			$provider = get_class( self::$provider );
-			if ( is_callable( array( $provider, 'field_input_view' ) ) ) {
-				$view = self::$provider->field_input_view();
-			}
-
-			if ( $view && file_exists( $view ) ) {
-				// Add hidden lat/lng fields for non latlng view types
-				pods_view( $view, compact( array_keys( get_defined_vars() ) ) );
-				if ( $type != 'lat-lng' ) {
-					echo '<div style="display: none">';
-					pods_view( plugin_dir_path( __FILE__ ) . 'ui/fields/lat-lng.php', compact( array_keys( get_defined_vars() ) ) );
-					echo '</div>';
-				}
-			}
-
+		if ( ! pods_v( 'maps', $options ) ) {
+			return;
 		}
 
+		$provider = get_class( self::$provider );
+		if ( is_callable( array( $provider, 'field_input_view' ) ) ) {
+			$view = self::$provider->field_input_view();
+		}
+
+		if ( $view && file_exists( $view ) ) {
+			pods_view( $view, compact( array_keys( get_defined_vars() ) ) );
+
+			if ( 'lat-lng' !== $type ) {
+				// Add hidden lat/lng fields for non lat-lng view types.
+				echo '<div style="display: none">';
+				pods_view( self::$dir . 'ui/fields/lat-lng.php', compact( array_keys( get_defined_vars() ) ) );
+				echo '</div>';
+			}
+		}
 	}
 
 	/**
@@ -448,7 +447,7 @@ class Pods_Component_Maps extends PodsComponent {
 	 *
 	 * @return array
 	 */
-	public function pods_ui_field_address_validate( $errors, $value, $type, $name, $options, $fields, $pod, $id, $params ) {
+	public function filter_pods_ui_field_address_validate( $errors, $value, $type, $name, $options, $fields, $pod, $id, $params ) {
 
 		// @todo: Validate based on address type ( lat / lon, address fields)
 
@@ -457,12 +456,12 @@ class Pods_Component_Maps extends PodsComponent {
 		}
 
 		// Get geocode from address fields
-		if ( isset( $value['address'] ) ) {
+		/*if ( isset( $value['address'] ) ) { // $value['geo']
 			$geocode = self::geocode_address_to_latlng( $value['address'] );
-			/*if ( empty( $geocode['lat'] ) && empty( $geocode['lng'] ) ) {
+			if ( empty( $geocode['lat'] ) && empty( $geocode['lng'] ) ) {
 				$errors[] = __( 'Could not find geodata for this address', 'pods' );
-			}*/
-		}
+			}
+		}*/
 
 		return $errors;
 
@@ -482,7 +481,7 @@ class Pods_Component_Maps extends PodsComponent {
 	 *
 	 * @return mixed
 	 */
-	public function pods_ui_field_address_pre_save( $value, $type, $id, $name, $options, $fields, $pod, $params ) {
+	public function filter_pods_ui_field_address_pre_save( $value, $type, $id, $name, $options, $fields, $pod, $params ) {
 
 		$org_value = $value;
 
