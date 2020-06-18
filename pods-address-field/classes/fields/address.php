@@ -283,7 +283,7 @@ class PodsField_Address extends PodsField {
 	 */
 	public function validate( $value, $name = null, $options = null, $fields = null, $pod = null, $id = null, $params = null ) {
 
-		// @todo: Validate each returned value for variable type and content (sanitizing)
+		// @todo: Validate each returned value (address part) for variable type and content (sanitizing)
 		$errors = array();
 
 		$type = pods_v( self::$type . '_type', $options );
@@ -303,7 +303,7 @@ class PodsField_Address extends PodsField {
 		 */
 		$errors = apply_filters( 'pods_ui_field_address_validate', $errors, $value, $type, $name, $options, $fields, $pod, $id, $params );
 
-		if ( 1 == pods_v( 'required', $options ) ) {
+		if ( empty( array_filter( $value ) ) && 1 == pods_v( 'required', $options ) ) {
 			$errors[] = __( 'This field is required.', 'pods' );
 		}
 
