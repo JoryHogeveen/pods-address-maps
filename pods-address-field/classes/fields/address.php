@@ -269,6 +269,9 @@ class PodsField_Address extends PodsField {
 		$view = PODS_ADDRESS_FIELD_DIR . 'ui/fields/address.php';
 		$view = apply_filters( 'pods_ui_field_address_input_view', $view, $type, $name, $value, $options, $pod, $id );
 
+		// Disable REACT DFV for now.
+		$options['disable_dfv'] = true;
+
 		if ( ! empty( $view ) ) {
 			pods_view( $view, compact( array_keys( get_defined_vars() ) ) );
 		}
