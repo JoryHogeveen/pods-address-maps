@@ -74,10 +74,10 @@ class PodsField_Address extends PodsField {
 				'dependency' => true
 			),
 			self::$type . '_address_options'        => array(
-				'label'      => __( 'Address Options', 'pods' ),
-				'depends-on' => array( self::$type . '_type' => 'address' ),
-				'type' => 'boolean_group',
-				'boolean_group'      => array(
+				'label'         => __( 'Address Options', 'pods' ),
+				'depends-on'    => array( self::$type . '_type' => 'address' ),
+				'type'          => 'boolean_group',
+				'boolean_group' => array(
 					self::$type . '_address_line_1'      => array(
 						'label'   => __( 'Enable Address Line 1', 'pods' ),
 						'default' => 1,
