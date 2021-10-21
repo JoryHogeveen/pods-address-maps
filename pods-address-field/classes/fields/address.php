@@ -188,6 +188,12 @@ class PodsField_Address extends PodsField {
 			)
 		);
 
+		// Backwards compatibility
+		if ( version_compare( PODS_VERSION, 2.8, '<' ) ) {
+			$options[ self::$type . '_address_options' ]['group'] = $options[ self::$type . '_address_options' ]['boolean_group'];
+			unset( $options[ self::$type . '_address_options' ]['type'] );
+		}
+
 		return $options;
 
 	}
