@@ -72,9 +72,8 @@ function pods_display_map( $value, $options = array() ) {
 	$view = '';
 	$name = pods_v( 'name', $options, '' );
 	$type = pods_v( 'type', $options, '' );
-	$provider = get_class( Pods_Component_Maps::$provider );
 
-	if ( is_callable( array( $provider, 'field_display_view' ) ) ) {
+	if ( is_callable( array( Pods_Component_Maps::$provider, 'field_display_view' ) ) ) {
 		$view = Pods_Component_Maps::$provider->field_display_view();
 	}
 
