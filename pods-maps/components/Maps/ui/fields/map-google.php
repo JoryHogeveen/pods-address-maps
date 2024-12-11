@@ -33,6 +33,9 @@ if ( ! empty( $map_options['marker'] ) ) {
 $attributes = array();
 $attributes = PodsForm::merge_attributes( $attributes, $name, $form_field_type, $options );
 
+$id_prefix = $attributes['id'];
+$id_prefix_fallback = PodsForm::merge_attributes( array(), $name, $form_field_type )['id'];
+
 if ( ! empty( $options['maps_info_window'] ) && in_array( $options['maps_info_window_content'], array(
 		'paragraph',
 		'wysiwyg'
@@ -52,10 +55,10 @@ if ( ! empty( $options['maps_info_window'] ) && in_array( $options['maps_info_wi
 
 echo PodsForm::label( 'map-google', __( 'Google Maps', 'pod' ) );
 ?>
-<input type="button" name="<?php echo esc_attr( $attributes['id'] . '-map-lookup-button' ); ?>"
-	id="<?php echo esc_attr( $attributes['id'] . '-map-lookup-button' ); ?>"
+<input type="button" name="<?php echo esc_attr( $id_prefix . '-map-lookup-button' ); ?>"
+	id="<?php echo esc_attr( $id_prefix . '-map-lookup-button' ); ?>"
 	value="<?php esc_attr_e( 'Lookup Location from Address', 'pods' ) ?>" />
-<div id="<?php echo esc_attr( $attributes['id'] . '-map-canvas' ); ?>"
+<div id="<?php echo esc_attr( $id_prefix . '-map-canvas' ); ?>"
 	class="pods-maps-map-canvas pods-<?php echo esc_attr( $form_field_type ); ?>-maps-map-canvas"></div>
 
 <script type="text/javascript">
@@ -65,22 +68,30 @@ jQuery( document ).ready( function ( $ ) {
 
 		if ( typeof google !== 'undefined' ) {
 
-			var fieldId = '<?php echo esc_attr( $attributes['id'] ); ?>',
+			function findField( name ) {
+				var field = $( '#<?php echo esc_attr( $id_prefix ); ?>-' + name );
+				if ( field.length ) {
+					return field;
+				}
+				return $( '#<?php echo esc_attr( $id_prefix_fallback ); ?>-' + name );
+			}
+
+			var fieldId = '<?php echo esc_attr( $id_prefix ); ?>',
 				fieldType = '<?php echo esc_attr( $type ); ?>',
-				mapCanvas = document.getElementById( '<?php echo esc_attr( $attributes['id'] . '-map-canvas' ); ?>' ),
-				geocodeButton = $( '#<?php echo esc_attr( $attributes['id'] . '-map-lookup-button' ); ?>' ),
+				mapCanvas = document.getElementById( '<?php echo esc_attr( $id_prefix . '-map-canvas' ); ?>' ),
+				geocodeButton = $( '#<?php echo esc_attr( $id_prefix . '-map-lookup-button' ); ?>' ),
 
 				fields = {
-					line_1: $( '#<?php echo esc_attr( $attributes['id'] . '-address-line-1' ); ?>' ),
-					line_2: $( '#<?php echo esc_attr( $attributes['id'] . '-address-line-2' ); ?>' ),
-					city: $( '#<?php echo esc_attr( $attributes['id'] . '-address-city' ); ?>' ),
-					postal_code: $( '#<?php echo esc_attr( $attributes['id'] . '-address-postal-code' ); ?>' ),
-					region: $( '#<?php echo esc_attr( $attributes['id'] . '-address-region' ); ?>' ),
-					country: $( '#<?php echo esc_attr( $attributes['id'] . '-address-country' ); ?>' ),
-					text: $( '#<?php echo esc_attr( $attributes['id'] . '-text' ); ?>' ),
-					info_window: $( '#<?php echo esc_attr( $attributes['id'] . '-info-window' ); ?>' ),
-					lat: $( '#<?php echo esc_attr( $attributes['id'] . '-geo-lat' ); ?>' ),
-					lng: $( '#<?php echo esc_attr( $attributes['id'] . '-geo-lng' ); ?>' )
+					line_1: findField( 'address-line-1' ),
+					line_2: findField( 'address-line-2' ),
+					city: findField( 'address-city' ),
+					postal_code: findField( 'address-postal-code' ),
+					region: findField( 'address-region' ),
+					country: findField( 'address-country' ),
+					text: findField( 'text' ),
+					info_window: findField( 'info-window' ),
+					lat: findField( 'geo-lat' ),
+					lng: findField( 'geo-lng' ),
 				},
 				// @todo check pregreplace, maybe this can be done better (nl2br not working)
 				// @todo check field type
