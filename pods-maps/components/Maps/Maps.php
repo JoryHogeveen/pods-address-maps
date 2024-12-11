@@ -372,9 +372,8 @@ class Pods_Component_Maps extends PodsComponent {
 
 		if ( pods_v( 'maps', $options ) && 'admin' !== pods_v( 'maps_display', $options ) ) {
 			$view     = '';
-			$provider = get_class( self::$provider );
 
-			if ( is_callable( array( $provider, 'field_display_view' ) ) ) {
+			if ( is_callable( array( self::$provider, 'field_display_view' ) ) ) {
 				$view = self::$provider->field_display_view();
 			}
 
@@ -414,9 +413,7 @@ class Pods_Component_Maps extends PodsComponent {
 		if ( ! pods_v( 'maps', $options ) ) {
 			return;
 		}
-
-		$provider = get_class( self::$provider );
-		if ( is_callable( array( $provider, 'field_input_view' ) ) ) {
+		if ( is_callable( array( self::$provider, 'field_input_view' ) ) ) {
 			$view = self::$provider->field_input_view();
 		}
 
@@ -521,11 +518,8 @@ class Pods_Component_Maps extends PodsComponent {
 	 */
 	public static function geocode_address( $data ) {
 
-		if ( is_object( self::$provider ) ) {
-			$provider = get_class( self::$provider );
-			if ( method_exists( $provider, 'geocode_address' ) ) {
-				return $provider::geocode_address( $data );
-			}
+		if ( self::$provider && method_exists( self::$provider, 'geocode_address' ) ) {
+			return self::$provider::geocode_address( $data );
 		}
 
 		return false;
@@ -538,11 +532,8 @@ class Pods_Component_Maps extends PodsComponent {
 	 */
 	public static function geocode_address_to_latlng( $data ) {
 
-		if ( is_object( self::$provider ) ) {
-			$provider = get_class( self::$provider );
-			if ( method_exists( $provider, 'geocode_address_to_latlng' ) ) {
-				return $provider::geocode_address_to_latlng( $data );
-			}
+		if ( self::$provider && method_exists( self::$provider, 'geocode_address_to_latlng' ) ) {
+			return self::$provider::geocode_address_to_latlng( $data );
 		}
 
 		return false;
@@ -555,11 +546,8 @@ class Pods_Component_Maps extends PodsComponent {
 	 */
 	public static function geocode_latlng_to_address( $data ) {
 
-		if ( is_object( self::$provider ) ) {
-			$provider = get_class( self::$provider );
-			if ( method_exists( $provider, 'geocode_latlng_to_address' ) ) {
-				return $provider::geocode_latlng_to_address( $data );
-			}
+		if ( self::$provider && method_exists( self::$provider, 'geocode_latlng_to_address' ) ) {
+			return self::$provider::geocode_latlng_to_address( $data );
 		}
 
 		return false;
