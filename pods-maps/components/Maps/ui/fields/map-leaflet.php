@@ -69,28 +69,82 @@ jQuery( document ).ready( function ( $ ) {
 			return;
 		}
 
-		function findField( name ) {
-			var field = $( '#<?php echo esc_attr( $id_prefix ); ?>-' + name );
-			if ( field.length ) {
-				return field;
+		var fieldNames = <?php echo wp_json_encode( array(
+			'line_1'      => $name . '[address][line_1]',
+			'line_2'      => $name . '[address][line_2]',
+			'city'        => $name . '[address][city]',
+			'postal_code' => $name . '[address][postal_code]',
+			'region'      => $name . '[address][region]',
+			'country'     => $name . '[address][country]',
+			'text'        => $name . '[text]',
+			'info_window' => $name . '[info_window]',
+			'lat'         => $name . '[geo][lat]',
+			'lng'         => $name . '[geo][lng]',
+		) ); ?>;
+
+		function findField( oldSuffix, dfvSuffix, inputName ) {
+			var field = $();
+
+			if ( inputName ) {
+				field = $( '[name="' + inputName + '"]' );
+				if ( field.length ) {
+					return field.first();
+				}
 			}
-			return $( '#<?php echo esc_attr( $id_prefix_fallback ); ?>-' + name );
+
+			if ( dfvSuffix ) {
+				field = $( '#<?php echo esc_attr( $id_prefix ); ?>-' + dfvSuffix );
+				if ( field.length ) {
+					return field.first();
+				}
+			}
+
+			if ( ! oldSuffix && ! dfvSuffix ) {
+			field = $( '#<?php echo esc_attr( $id_prefix ); ?>' );
+			if ( field.length ) {
+				return field.first();
+				}
+			}
+
+			if ( oldSuffix ) {
+				field = $( '#<?php echo esc_attr( $id_prefix ); ?>-' + oldSuffix );
+				if ( field.length ) {
+					return field.first();
+				}
+
+				field = $( '#<?php echo esc_attr( $id_prefix_fallback ); ?>-' + oldSuffix );
+				if ( field.length ) {
+					return field.first();
+				}
+			}
+
+			return $();
+		}
+
+		function setFieldValue( field, value ) {
+			if ( ! field.length ) {
+				return;
+			}
+
+			field.val( value );
+			field.trigger( 'input' );
+			field.trigger( 'change' );
 		}
 
 		var fieldType = '<?php echo esc_attr( $type ); ?>',
 			mapCanvas = document.getElementById( '<?php echo esc_attr( $id_prefix . '-map-canvas' ); ?>' ),
 			geocodeButton = $( '#<?php echo esc_attr( $id_prefix . '-map-lookup-button' ); ?>' ),
 			fields = {
-				line_1: findField( 'address-line-1' ),
-				line_2: findField( 'address-line-2' ),
-				city: findField( 'address-city' ),
-				postal_code: findField( 'address-postal-code' ),
-				region: findField( 'address-region' ),
-				country: findField( 'address-country' ),
-				text: findField( 'text' ),
-				info_window: findField( 'info-window' ),
-				lat: findField( 'geo-lat' ),
-				lng: findField( 'geo-lng' )
+				line_1: findField( 'address-line-1', '', fieldNames.line_1 ),
+				line_2: findField( 'address-line-2', 'line-2', fieldNames.line_2 ),
+				city: findField( 'address-city', 'city', fieldNames.city ),
+				postal_code: findField( 'address-postal-code', 'postal-code', fieldNames.postal_code ),
+				region: findField( 'address-region', 'region', fieldNames.region ),
+				country: findField( 'address-country', 'country', fieldNames.country ),
+				text: findField( 'text', 'text', fieldNames.text ),
+				info_window: findField( 'info-window', 'info-window', fieldNames.info_window ),
+				lat: findField( 'geo-lat', 'geo-lat', fieldNames.lat ),
+				lng: findField( 'geo-lng', 'geo-lng', fieldNames.lng )
 			},
 			fieldsFormat = <?php echo wp_json_encode( preg_replace( "/\n/m", '<br>', (string) pods_v( 'address_display_type_custom', $options ) ) ); ?>,
 			markerIcon = <?php echo ( ! empty( $map_options['marker'] ) ? '\'' . esc_url( $map_options['marker'] ) . '\'' : 'null' ); ?>,
@@ -308,10 +362,10 @@ jQuery( document ).ready( function ( $ ) {
 
 		function podsUpdateLatLng() {
 			if ( fields.lat.length ) {
-				fields.lat.val( latlng.lat );
+				setFieldValue( fields.lat, latlng.lat );
 			}
 			if ( fields.lng.length ) {
-				fields.lng.val( latlng.lng );
+				setFieldValue( fields.lng, latlng.lng );
 			}
 		}
 
@@ -322,25 +376,25 @@ jQuery( document ).ready( function ( $ ) {
 
 			if ( 'address' === fieldType ) {
 				if ( fields.line_1.length ) {
-					fields.line_1.val( address.line_1 || '' );
+					setFieldValue( fields.line_1, address.line_1 || '' );
 				}
 				if ( fields.line_2.length ) {
-					fields.line_2.val( address.line_2 || '' );
+					setFieldValue( fields.line_2, address.line_2 || '' );
 				}
 				if ( fields.city.length ) {
-					fields.city.val( address.city || '' );
+					setFieldValue( fields.city, address.city || '' );
 				}
 				if ( fields.postal_code.length ) {
-					fields.postal_code.val( address.postal_code || '' );
+					setFieldValue( fields.postal_code, address.postal_code || '' );
 				}
 				if ( fields.region.length ) {
-					fields.region.val( address.region || '' );
+					setFieldValue( fields.region, address.region || '' );
 				}
 				if ( fields.country.length ) {
 					if ( fields.country.is( 'select' ) ) {
-						fields.country.val( address.country_code || address.country || '' );
+						setFieldValue( fields.country, address.country_code || address.country || '' );
 					} else {
-						fields.country.val( address.country || '' );
+						setFieldValue( fields.country, address.country || '' );
 					}
 				}
 			} else if ( 'text' === fieldType && fields.text.length ) {
@@ -363,7 +417,7 @@ jQuery( document ).ready( function ( $ ) {
 				if ( address.country ) {
 					parts.push( address.country );
 				}
-				fields.text.val( parts.join( ', ' ) );
+				setFieldValue( fields.text, parts.join( ', ' ) );
 			}
 		}
 

@@ -69,13 +69,66 @@ jQuery( document ).ready( function ( $ ) {
 	$( window ).on( 'load', function() {
 
 		if ( typeof google !== 'undefined' ) {
+			var fieldNames = <?php echo wp_json_encode( array(
+				'line_1'      => $name . '[address][line_1]',
+				'line_2'      => $name . '[address][line_2]',
+				'city'        => $name . '[address][city]',
+				'postal_code' => $name . '[address][postal_code]',
+				'region'      => $name . '[address][region]',
+				'country'     => $name . '[address][country]',
+				'text'        => $name . '[text]',
+				'info_window' => $name . '[info_window]',
+				'lat'         => $name . '[geo][lat]',
+				'lng'         => $name . '[geo][lng]',
+			) ); ?>;
 
-			function findField( name ) {
-				var field = $( '#<?php echo esc_attr( $id_prefix ); ?>-' + name );
-				if ( field.length ) {
-					return field;
+			function findField( oldSuffix, dfvSuffix, inputName ) {
+				var field = $();
+
+				if ( inputName ) {
+					field = $( '[name="' + inputName + '"]' );
+					if ( field.length ) {
+						return field.first();
+					}
 				}
-				return $( '#<?php echo esc_attr( $id_prefix_fallback ); ?>-' + name );
+
+				if ( dfvSuffix ) {
+					field = $( '#<?php echo esc_attr( $id_prefix ); ?>-' + dfvSuffix );
+					if ( field.length ) {
+						return field.first();
+					}
+				}
+
+				if ( ! oldSuffix && ! dfvSuffix ) {
+				field = $( '#<?php echo esc_attr( $id_prefix ); ?>' );
+				if ( field.length ) {
+					return field.first();
+					}
+				}
+
+				if ( oldSuffix ) {
+					field = $( '#<?php echo esc_attr( $id_prefix ); ?>-' + oldSuffix );
+					if ( field.length ) {
+						return field.first();
+					}
+
+					field = $( '#<?php echo esc_attr( $id_prefix_fallback ); ?>-' + oldSuffix );
+					if ( field.length ) {
+						return field.first();
+					}
+				}
+
+				return $();
+			}
+
+			function setFieldValue( field, value ) {
+				if ( ! field.length ) {
+					return;
+				}
+
+				field.val( value );
+				field.trigger( 'input' );
+				field.trigger( 'change' );
 			}
 
 			var fieldId = '<?php echo esc_attr( $id_prefix ); ?>',
@@ -84,16 +137,16 @@ jQuery( document ).ready( function ( $ ) {
 				geocodeButton = $( '#<?php echo esc_attr( $id_prefix . '-map-lookup-button' ); ?>' ),
 
 				fields = {
-					line_1: findField( 'address-line-1' ),
-					line_2: findField( 'address-line-2' ),
-					city: findField( 'address-city' ),
-					postal_code: findField( 'address-postal-code' ),
-					region: findField( 'address-region' ),
-					country: findField( 'address-country' ),
-					text: findField( 'text' ),
-					info_window: findField( 'info-window' ),
-					lat: findField( 'geo-lat' ),
-					lng: findField( 'geo-lng' ),
+					line_1: findField( 'address-line-1', '', fieldNames.line_1 ),
+					line_2: findField( 'address-line-2', 'line-2', fieldNames.line_2 ),
+					city: findField( 'address-city', 'city', fieldNames.city ),
+					postal_code: findField( 'address-postal-code', 'postal-code', fieldNames.postal_code ),
+					region: findField( 'address-region', 'region', fieldNames.region ),
+					country: findField( 'address-country', 'country', fieldNames.country ),
+					text: findField( 'text', 'text', fieldNames.text ),
+					info_window: findField( 'info-window', 'info-window', fieldNames.info_window ),
+					lat: findField( 'geo-lat', 'geo-lat', fieldNames.lat ),
+					lng: findField( 'geo-lng', 'geo-lng', fieldNames.lng ),
 				},
 				// @todo check pregreplace, maybe this can be done better (nl2br not working)
 				// @todo check field type
@@ -316,10 +369,10 @@ jQuery( document ).ready( function ( $ ) {
 			//
 			function podsUpdateLatLng() {
 				if ( fields.lat.length ) {
-					fields.lat.val( latlng.lat )
+					setFieldValue( fields.lat, latlng.lat );
 				}
 				if ( fields.lng.length ) {
-					fields.lng.val( latlng.lng )
+					setFieldValue( fields.lng, latlng.lng );
 				}
 			}
 
@@ -329,35 +382,35 @@ jQuery( document ).ready( function ( $ ) {
 					if ( fieldType === 'address' ) {
 						// Reset line_1 since this is made of two parts from Google (street_number and route)
 						if ( fields.line_1.length ) {
-							fields.line_1.val( '' );
+							setFieldValue( fields.line_1, '' );
 						}
 						$.each( address, function ( i, address_component ) {
 							if ( fields.line_1.length && address_component.types[ 0 ] === "street_number" ) {
-								fields.line_1.val( ' ' + address_component.long_name );
+								setFieldValue( fields.line_1, ' ' + address_component.long_name );
 							}
 							if ( fields.line_1.length && address_component.types[ 0 ] === "route" ) {
-								fields.line_1.val( address_component.long_name + fields.line_1.val() );
+								setFieldValue( fields.line_1, address_component.long_name + fields.line_1.val() );
 							}
 							if ( fields.city.length && address_component.types[ 0 ] === "locality" ) {
-								fields.city.val( address_component.long_name );
+								setFieldValue( fields.city, address_component.long_name );
 							}
 							if ( fields.country.length && address_component.types[ 0 ] === "country" ) {
 								if ( fields.country.is( 'select' ) ) {
-									fields.country.val( address_component.short_name );
+									setFieldValue( fields.country, address_component.short_name );
 								} else {
-									fields.country.val( address_component.long_name );
+									setFieldValue( fields.country, address_component.long_name );
 								}
 							}
 							if ( fields.region.length && address_component.types[ 0 ] === "administrative_area_level_1" ) {
 								if ( fields.region.is( 'select' ) ) {
 									// @todo Validate for US states
-									fields.region.val( address_component.short_name );
+									setFieldValue( fields.region, address_component.short_name );
 								} else {
-									fields.region.val( address_component.long_name );
+									setFieldValue( fields.region, address_component.long_name );
 								}
 							}
 							if ( fields.postal_code.length && address_component.types[ 0 ] === "postal_code" ) {
-								fields.postal_code.val( address_component.long_name );
+								setFieldValue( fields.postal_code, address_component.long_name );
 							}
 						} );
 
@@ -365,18 +418,18 @@ jQuery( document ).ready( function ( $ ) {
 
 						if ( fields.text.length ) {
 							// Reset value
-							fields.text.val( '' );
+							setFieldValue( fields.text, '' );
 							$.each( address, function ( i, address_component ) {
 								if ( address_component.long_name !== '' ) {
 									if ( address_component.types[ 0 ] === "route" ) {
-										fields.text.val( address_component.long_name + fields.text.val() );
+										setFieldValue( fields.text, address_component.long_name + fields.text.val() );
 									} else if ( address_component.types[ 0 ] === "street_number" ) {
-										fields.text.val( ' ' + address_component.long_name );
+										setFieldValue( fields.text, ' ' + address_component.long_name );
 									} else {
 										if ( fields.text.val() === '' ) {
-											fields.text.val( address_component.long_name );
+											setFieldValue( fields.text, address_component.long_name );
 										} else {
-											fields.text.val( fields.text.val() + ', ' + address_component.long_name );
+											setFieldValue( fields.text, fields.text.val() + ', ' + address_component.long_name );
 										}
 									}
 								}
