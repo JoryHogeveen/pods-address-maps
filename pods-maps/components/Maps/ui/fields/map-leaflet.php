@@ -41,6 +41,8 @@ $attributes = PodsForm::merge_attributes( $attributes, $name, $form_field_type, 
 $id_prefix = $attributes['id'];
 $id_prefix_fallback = PodsForm::merge_attributes( array(), $name, $form_field_type )['id'];
 
+echo '<hr class="pods-maps-map-separator">';
+
 if ( ! empty( $options['maps_info_window'] ) && in_array( $options['maps_info_window_content'], array( 'paragraph', 'wysiwyg' ), true ) ) {
 	echo PodsForm::label( $name . '-info-window', __( 'Popup content', 'pods' ) );
 	if ( 'address' === $type ) {

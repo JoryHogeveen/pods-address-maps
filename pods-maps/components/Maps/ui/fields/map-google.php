@@ -38,11 +38,9 @@ $attributes = PodsForm::merge_attributes( $attributes, $name, $form_field_type, 
 $id_prefix = $attributes['id'];
 $id_prefix_fallback = PodsForm::merge_attributes( array(), $name, $form_field_type )['id'];
 
-if ( ! empty( $options['maps_info_window'] ) && in_array( $options['maps_info_window_content'], array(
-		'paragraph',
-		'wysiwyg'
-	) )
-) {
+echo '<hr class="pods-maps-map-separator">';
+
+if ( ! empty( $options['maps_info_window'] ) && in_array( $options['maps_info_window_content'], array( 'paragraph', 'wysiwyg' ), true ) ) {
 	echo PodsForm::label( $name . '-info-window', __( 'Info Window content', 'pod' ) );
 	if ( $type == 'address' ) {
 		echo PodsForm::comment( $name . '-info-window', __( 'You can use the following tags for address fields', 'pods' ) . ': <br><code>{{line_1}}</code>, <code>{{line_2}}</code>, <code>{{postal_code}}</code>, <code>{{city}}</code>, <code>{{region}}</code>, <code>{{country}}</code>' );

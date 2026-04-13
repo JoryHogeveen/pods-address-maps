@@ -8,7 +8,12 @@
 }*/
 
 /* Admin */
-.pods-field .pods-maps-map-canvas {
+.pods-field .pods-maps-map-separator,
+.pods-field__container .pods-maps-map-separator {
+	margin: 1em 0;
+}
+.pods-field .pods-maps-map-canvas,
+.pods-field__container .pods-maps-map-canvas {
 	margin-top: 10px;
 	height:     300px;
 	/*width:      95%;*/
