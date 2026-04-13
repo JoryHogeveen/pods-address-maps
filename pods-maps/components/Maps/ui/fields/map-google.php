@@ -111,7 +111,8 @@ jQuery( document ).ready( function ( $ ) {
 					center: new google.maps.LatLng( <?php echo (float) $default_center[0]; ?>, <?php echo (float) $default_center[1]; ?> ),
 					marker: '<?php echo esc_attr( $map_options['marker'] ); ?>',
 					zoom: <?php echo absint( $map_options['zoom'] ); ?>,
-					mapTypeId: '<?php echo esc_attr( $map_options['type'] ); ?>'
+					mapTypeId: '<?php echo esc_attr( $map_options['type'] ); ?>',
+					scrollwheel: <?php echo ! empty( $options['maps_scrollwheel'] ) ? 'true' : 'false'; ?>
 				};
 
 
