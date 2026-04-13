@@ -19,10 +19,25 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 	public function assets() {
 
 		if ( ! empty( Pods_Component_Maps::$api_key ) ) {
-			wp_register_script( 'googlemaps', '//maps.googleapis.com/maps/api/js?key=' . Pods_Component_Maps::$api_key, false, '3' ); //sensor=false&
-			wp_register_script( 'googlemaps-static', '//maps.googleapis.com/maps/api/staticmap?key=' . Pods_Component_Maps::$api_key, false, '3' ); //sensor=false&
+			wp_register_script( 'googlemaps', $this->get_js_api_url(), array(), PODS_MAPS_VERSION, true );
 		}
 
+	}
+
+	/**
+	 * Build the Google Maps JavaScript API URL.
+	 *
+	 * @return string
+	 */
+	private function get_js_api_url() {
+
+		return add_query_arg(
+			array(
+				'key' => Pods_Component_Maps::$api_key,
+				'v'   => 'weekly',
+			),
+			'https://maps.googleapis.com/maps/api/js'
+		);
 	}
 
 	/**
@@ -485,7 +500,7 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 			$data = implode( ',', $data );
 		}
 
-		$url = self::$geocode_url . '?' . $type . '=' . $data;
+		$url = add_query_arg( array( $type => (string) $data ), self::$geocode_url );
 
 		if ( ! $api_key ) {
 			if ( ! empty( Pods_Component_Maps::$options['api_key_http'] ) ) {
@@ -496,33 +511,88 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 		}
 
 		if ( ! empty( $api_key ) ) {
-			$url .= '&key=' . $api_key;
+			$url = add_query_arg( array( 'key' => $api_key ), $url );
 		}
 
-		$post = wp_remote_get( $url );
-
-		if ( ! empty( $post['body'] ) ) {
-			$data = json_decode( $post['body'], true );
+		for ( $attempt = 0; $attempt < 2; $attempt++ ) {
+			$data = self::request_json( $url );
 			if ( ! empty( $data['results'][0] ) ) {
 				return $data['results'][0];
 			}
 		}
 
-		// Try again once.
-		$post = wp_remote_get( $url );
-
-		if ( ! empty( $post['body'] ) ) {
-			$data = json_decode( $post['body'], true );
-			self::$response = $data;
-			if ( ! empty( $data['results'][0] ) ) {
-				return $data['results'][0];
-			}
-			if ( is_super_admin() ) {
-				pods_error( $data, 'exception' );
-			}
+		if ( is_super_admin() && ! empty( self::$response ) ) {
+			pods_error( self::$response, 'exception' );
 		}
 
 		return array();
+	}
+
+	/**
+	 * Execute a Google geocoding request and decode the JSON response.
+	 *
+	 * @param string $url
+	 *
+	 * @return array
+	 */
+	public static function request_json( $url ) {
+
+		$args = array(
+			'timeout' => 15,
+			'headers' => array(
+				'Accept'     => 'application/json',
+				'Referer'    => home_url( '/' ),
+				'User-Agent' => self::build_user_agent(),
+			),
+		);
+
+		$post = wp_remote_get( $url, $args );
+		if ( is_wp_error( $post ) ) {
+			self::$response = array( 'error' => $post->get_error_message() );
+			return array();
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $post );
+		$body = wp_remote_retrieve_body( $post );
+
+		if ( 200 !== $code || empty( $body ) ) {
+			self::$response = array(
+				'error' => 'Request failed',
+				'code'  => $code,
+				'body'  => $body,
+				'url'   => $url,
+			);
+			return array();
+		}
+
+		$data = json_decode( $body, true );
+		if ( ! is_array( $data ) ) {
+			self::$response = array(
+				'error' => 'Invalid JSON response',
+				'body'  => $body,
+				'url'   => $url,
+			);
+			return array();
+		}
+
+		self::$response = $data;
+
+		return $data;
+	}
+
+	/**
+	 * Build a user-agent for server-side geocode requests.
+	 *
+	 * @return string
+	 */
+	public static function build_user_agent() {
+
+		$host = wp_parse_url( home_url(), PHP_URL_HOST );
+		if ( empty( $host ) ) {
+			$host = 'wordpress';
+		}
+
+		return 'PodsMapsGoogle/1.0 (' . $host . ')';
 	}
 
 }
