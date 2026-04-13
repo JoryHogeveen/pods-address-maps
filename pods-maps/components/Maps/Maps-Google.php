@@ -518,7 +518,7 @@ class Pods_Component_Maps_Google implements Pods_Component_Maps_Provider {
 				return $data['results'][0];
 			}
 			if ( is_super_admin() ) {
-				print_r( $post );die;
+				pods_error( $data, 'exception' );
 			}
 		}
 
