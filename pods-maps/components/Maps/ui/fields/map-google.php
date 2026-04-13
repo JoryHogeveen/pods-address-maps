@@ -64,7 +64,7 @@ echo PodsForm::label( 'map-google', __( 'Google Maps', 'pod' ) );
 <script type="text/javascript">
 jQuery( document ).ready( function ( $ ) {
 	// Window.load required. We need to wait until DFV is ready.
-	$(window).load( function() {
+	$( window ).on( 'load', function() {
 
 		if ( typeof google !== 'undefined' ) {
 
@@ -116,7 +116,7 @@ jQuery( document ).ready( function ( $ ) {
 			//------------------------------------------------------------------------
 			// Initialze the map
 			//
-			if ( fields.lat.length && fields.lng.length ) {
+			if ( fields.lat.length && fields.lng.length && '' !== fields.lat.val() && '' !== fields.lng.val() ) {
 				latlng = { 'lat': Number( fields.lat.val() ), 'lng': Number( fields.lng.val() ) };
 				mapOptions.center = new google.maps.LatLng( latlng );
 			}
