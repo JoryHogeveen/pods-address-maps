@@ -30,6 +30,8 @@ if ( ! empty( $map_options['marker'] ) ) {
 	$map_options['marker'] = wp_get_attachment_image_url( $map_options['marker'], 'full' );
 }
 
+$default_center = Pods_Component_Maps::get_default_center( $options );
+
 $attributes = array();
 $attributes = PodsForm::merge_attributes( $attributes, $name, $form_field_type, $options );
 
@@ -104,9 +106,9 @@ jQuery( document ).ready( function ( $ ) {
 				infowindowEditor = '',
 				geocoder = null,
 				address = null,
-				latlng = null,
+				latlng = { 'lat': <?php echo (float) $default_center[0]; ?>, 'lng': <?php echo (float) $default_center[1]; ?> },
 				mapOptions = {
-					center: new google.maps.LatLng( 41.850033, - 87.6500523 ), // default (Chicago)
+					center: new google.maps.LatLng( <?php echo (float) $default_center[0]; ?>, <?php echo (float) $default_center[1]; ?> ),
 					marker: '<?php echo esc_attr( $map_options['marker'] ); ?>',
 					zoom: <?php echo absint( $map_options['zoom'] ); ?>,
 					mapTypeId: '<?php echo esc_attr( $map_options['type'] ); ?>'

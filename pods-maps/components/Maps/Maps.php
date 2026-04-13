@@ -268,6 +268,32 @@ class Pods_Component_Maps extends PodsComponent {
 				) ),
 				'dependency' => true
 			),
+			'maps_center_lat'  => array(
+				'label'   => __( 'Default Map Center Latitude', 'pods' ),
+				'help'    => __( 'Used as the fallback center point when a map has no saved coordinates.', 'pods' ),
+				'default' => 41.850033,
+				'type'    => 'number',
+				'options' => array(
+					'number_decimals'   => 10,
+					'number_max_length' => 20,
+					'number_min'        => -90,
+					'number_max'        => 90,
+					'number_format'     => '9999.99',
+				),
+			),
+			'maps_center_lng'  => array(
+				'label'   => __( 'Default Map Center Longitude', 'pods' ),
+				'help'    => __( 'Used as the fallback center point when a map has no saved coordinates.', 'pods' ),
+				'default' => -87.6500523,
+				'type'    => 'number',
+				'options' => array(
+					'number_decimals'   => 10,
+					'number_max_length' => 20,
+					'number_min'        => -180,
+					'number_max'        => 180,
+					'number_format'     => '9999.99',
+				),
+			),
 		);
 
 		if ( is_callable( array( self::$provider, 'options' ) ) ) {
@@ -276,6 +302,40 @@ class Pods_Component_Maps extends PodsComponent {
 
 		return $options;
 
+	}
+
+	/**
+	 * Get the fallback map center.
+	 *
+	 * @param array $options Field or display options.
+	 *
+	 * @return array
+	 */
+	public static function get_default_center( $options = array() ) {
+
+		if ( ! empty( $options['maps_center'] ) ) {
+			if ( is_array( $options['maps_center'] ) ) {
+				$lat = pods_v( 'lat', $options['maps_center'], pods_v( 0, $options['maps_center'] ) );
+				$lng = pods_v( 'lng', $options['maps_center'], pods_v( 1, $options['maps_center'] ) );
+
+				if ( '' !== (string) $lat && '' !== (string) $lng ) {
+					return array( (float) $lat, (float) $lng );
+				}
+			}
+
+			if ( is_string( $options['maps_center'] ) && false !== strpos( $options['maps_center'], ',' ) ) {
+				$parts = array_map( 'trim', explode( ',', $options['maps_center'], 2 ) );
+
+				if ( isset( $parts[1] ) && '' !== $parts[0] && '' !== $parts[1] ) {
+					return array( (float) $parts[0], (float) $parts[1] );
+				}
+			}
+		}
+
+		$lat = pods_v( 'maps_center_lat', self::$options, 41.850033, true );
+		$lng = pods_v( 'maps_center_lng', self::$options, -87.6500523, true );
+
+		return array( (float) $lat, (float) $lng );
 	}
 
 	/**

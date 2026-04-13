@@ -31,6 +31,8 @@ if ( ! empty( $map_options['marker'] ) ) {
 	$map_options['marker'] = wp_get_attachment_image_url( $map_options['marker'], 'full' );
 }
 
+$default_center = Pods_Component_Maps::get_default_center( $options );
+
 $map_options['scrollwheel'] = (bool) pods_v( 'maps_scrollwheel', $options, pods_v( 'maps_scrollwheel', Pods_Component_Maps::$options, true ) );
 
 $attributes = array();
@@ -97,8 +99,8 @@ jQuery( document ).ready( function ( $ ) {
 			popupEditor = null,
 			address = null,
 			latlng = {
-				lat: 41.850033,
-				lng: -87.6500523
+				lat: <?php echo (float) $default_center[0]; ?>,
+				lng: <?php echo (float) $default_center[1]; ?>
 			};
 
 		if ( fields.lat.length && fields.lng.length && fields.lat.val() !== '' && fields.lng.val() !== '' ) {

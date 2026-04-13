@@ -42,12 +42,14 @@ $multiple = isset( $multiple ) ? $multiple : false;
 $attributes = array();
 $attributes = PodsForm::merge_attributes( $attributes, $name, $type, $options );
 
+$default_center = Pods_Component_Maps::get_default_center( $options );
+
 $map_options = array();
 
 if ( ! empty( $options['maps_center'] ) ) {
 	$map_options['center'] = (array) $options['maps_center'];
 } else {
-	$map_options['center'] = array( 41.850033, -87.6500523 ); // default (Chicago)
+	$map_options['center'] = $default_center;
 }
 
 if ( isset( $options['maps_center_auto'] ) ) {
