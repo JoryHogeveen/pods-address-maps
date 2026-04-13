@@ -35,6 +35,11 @@ wp_enqueue_script( 'leaflet' );
 wp_enqueue_script( 'pods-maps' );
 wp_enqueue_style( 'pods-maps' );
 
+$name = isset( $name ) ? $name : '';
+$type = isset( $type ) ? $type : '';
+$options = isset( $options ) ? $options : array();
+$multiple = isset( $multiple ) ? $multiple : false;
+
 $attributes = array();
 $attributes = PodsForm::merge_attributes( $attributes, $name, $type, $options );
 
@@ -159,7 +164,7 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 ?>
 <div id="<?php echo esc_attr( $attributes['id'] . '-map-canvas' ); ?>"
 	class="pods-maps-map-canvas pods-<?php echo esc_attr( $type ); ?>-maps-map-canvas"
-	data-value="<?php echo esc_attr( wp_json_encode( $value ) ); ?>"></div>
+	data-value="<?php echo esc_attr( json_encode( $value ) ); ?>"></div>
 
 <script type="text/javascript">
 jQuery( document ).ready( function ( $ ) {

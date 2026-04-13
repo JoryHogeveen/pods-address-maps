@@ -34,6 +34,11 @@ wp_enqueue_script( 'googlemaps' );
 wp_enqueue_script( 'pods-maps' );
 wp_enqueue_style( 'pods-maps' );
 
+$name = isset( $name ) ? $name : '';
+$type = isset( $type ) ? $type : '';
+$options = isset( $options ) ? $options : array();
+$multiple = isset( $multiple ) ? $multiple : false;
+
 $attributes = array();
 $attributes = PodsForm::merge_attributes( $attributes, $name, $type, $options );
 
