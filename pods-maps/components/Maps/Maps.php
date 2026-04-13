@@ -165,6 +165,13 @@ class Pods_Component_Maps extends PodsComponent {
 					self::$provider = new Pods_Component_Maps_Google();
 				}
 				break;
+			case 'openstreetmap':
+			case 'leaflet':
+				if ( file_exists( self::$dir . 'Maps-Leaflet.php' ) ) {
+					include_once( self::$dir . 'Maps-Leaflet.php' );
+					self::$provider = new Pods_Component_Maps_Leaflet();
+				}
+				break;
 			default:
 				/**
 				 * Add your own maps API provider instance
@@ -225,7 +232,16 @@ class Pods_Component_Maps extends PodsComponent {
 			if ( ! empty( $return ) ) {
 				wp_send_json_success( $return );
 			} else {
-				wp_send_json_error( __( 'Geocode error, please try again or type different address data.', 'pods' ) );
+				$error = __( 'Geocode error, please try again or type different address data.', 'pods' );
+
+				if ( is_super_admin() && ! empty( self::$provider ) && property_exists( self::$provider, 'response' ) ) {
+					$provider_error = (array) self::$provider::$response;
+					if ( ! empty( $provider_error ) ) {
+						$error = $provider_error;
+					}
+				}
+
+				wp_send_json_error( $error );
 			}
 		}
 		die();
@@ -245,7 +261,8 @@ class Pods_Component_Maps extends PodsComponent {
 				'default'    => 'google',
 				'type'       => 'pick',
 				'data'       => apply_filters( 'pods_component_maps_providers', array(
-					'google' => __( 'Google Maps', 'pods' ),
+					'google'  => __( 'Google Maps', 'pods' ),
+					'leaflet' => __( 'OpenStreetMap (Leaflet)', 'pods' ),
 					//'bing' => __( 'Bing Maps', 'pods' ),
 					//'openstreetmap' => __( 'OpenStreetMap', 'pods' ),
 				) ),
