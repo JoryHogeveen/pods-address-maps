@@ -280,7 +280,7 @@ jQuery( document ).ready( function ( $ ) {
 			//
 			function podsMapsGeocodeAddress() {
 				geocoder.geocode( { 'address': address }, function ( results, status ) {
-					if ( status == google.maps.GeocoderStatus.OK ) {
+					if ( status === 'OK' || status == google.maps.GeocoderStatus.OK ) {
 						latlng = {
 							'lat': results[ 0 ].geometry.location.lat(),
 							'lng': results[ 0 ].geometry.location.lng()
@@ -297,7 +297,7 @@ jQuery( document ).ready( function ( $ ) {
 
 			function podsMapsGeocodeLatLng() {
 				geocoder.geocode( { 'location': latlng }, function ( results, status ) {
-					if ( status == google.maps.GeocoderStatus.OK ) {
+					if ( status === 'OK' || status == google.maps.GeocoderStatus.OK ) {
 						address = results[ 0 ].address_components;
 						podsUpdateAddress();
 					}
