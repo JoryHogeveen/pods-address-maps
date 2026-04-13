@@ -95,19 +95,10 @@ jQuery( document ).ready( function ( $ ) {
 				},
 				// @todo check pregreplace, maybe this can be done better (nl2br not working)
 				// @todo check field type
-				fieldsFormat = '<?php echo esc_attr(
-					preg_replace(
-						"/\n/m",
-						'<br>',
-						pods_v( 'address_display_type_custom', $options )
-					)
-				); ?>',
-
+				fieldsFormat = <?php echo wp_json_encode( preg_replace( "/\n/m", '<br>', (string) pods_v( 'address_display_type_custom', $options ) ) ); ?>,
 				map = null,
 				marker = null,
-				marker_icon = <?php echo( ! empty( $map_options['marker'] ) ? '\'' .
-				                                                              esc_url( $map_options['marker'] ) .
-				                                                              '\'' : 'null' ) ?>,
+				marker_icon = <?php echo( ! empty( $map_options['marker'] ) ? '\'' . esc_url( $map_options['marker'] ) . '\'' : 'null' ) ?>,
 				infowindow = <?php echo esc_attr( ( ! empty( $options['maps_info_window'] ) ) ? 'null' : 'false' ); ?>,
 				infowindowContent = '',
 				infowindowEditor = '',
