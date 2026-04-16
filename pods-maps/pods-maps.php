@@ -102,6 +102,20 @@ function pods_display_map( $value, $options = array() ) {
 						}
 					}
 				}
+
+			} elseif ( is_singular() ) {
+				$multiple = false;
+				$value = pods_field_raw( $name ?: null, null, $field_name, true );
+			} elseif ( is_archive() ) {
+				$value = [];
+				$posts = get_posts();
+
+				foreach ( $posts as $post ) {
+					$location = pods_field_raw( $name ?: null, pods_v( 'ID', $post ), $field_name, true );
+					if ( $location ) {
+						$value[] = $location;
+					}
+				}
 			}
 		}
 	}
