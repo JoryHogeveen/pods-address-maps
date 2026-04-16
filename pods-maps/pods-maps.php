@@ -88,7 +88,7 @@ function pods_display_map( $value, $options = array() ) {
 				$id = pods_v( 'id', $options, null );
 				if ( $id ) {
 					$multiple = false;
-					$value = pods_field_raw( $name, $id, $field_name, true ) );
+					$value = pods_field_raw( $name, $id, $field_name, true );
 				} else {
 					$pod = pods( $name );
 					$allowed_keys = array( 'select', 'order', 'orderby', 'limit', 'offset', 'where', 'having', 'groupby', 'page', 'search' );
