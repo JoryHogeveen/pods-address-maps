@@ -50,6 +50,10 @@ function pods_maps_init() {
 	// Register component
 	add_filter( 'pods_components_register', 'pods_maps_register_component' );
 
+	add_shortcode( 'pods_maps', 'pods_shortcode_maps' );
+
+	add_shortcode( 'pods_maps', 'pods_shortcode_maps' );
+
 }
 add_action( 'plugins_loaded', 'pods_maps_init', 20 );
 
@@ -61,6 +65,10 @@ function pods_maps_register_component( $components ) {
 		'File' => PODS_MAPS_DIR . 'components/Maps/Maps.php',
 	);
 	return $components;
+}
+
+function pods_shortcode_maps( $atts = [] ) {
+	return pods_display_map( [], $atts );
 }
 
 
