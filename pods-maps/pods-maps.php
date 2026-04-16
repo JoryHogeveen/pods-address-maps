@@ -52,8 +52,6 @@ function pods_maps_init() {
 
 	add_shortcode( 'pods_maps', 'pods_shortcode_maps' );
 
-	add_shortcode( 'pods_maps', 'pods_shortcode_maps' );
-
 }
 add_action( 'plugins_loaded', 'pods_maps_init', 20 );
 
@@ -73,13 +71,31 @@ function pods_shortcode_maps( $atts = [] ) {
 
 
 function pods_display_map( $value, $options = array() ) {
-	$multiple = true;
-
 	$options = array_merge( Pods_Component_Maps::$options, $options );
 
-	$view = '';
-	$name = pods_v( 'name', $options, '' );
-	$type = pods_v( 'type', $options, '' );
+	$view     = '';
+	$name     = pods_v( 'name', $options, '' );
+	$type     = pods_v( 'type', $options, '' );
+	$multiple = pods_v( 'multiple', $options, ( isset( $value['geo'] ) ? false : true ) );
+
+	if ( ! $value ) {
+		$field_name = pods_v( 'field', $options, '' );
+
+		if ( $field_name ) {
+
+			if ( $name ) {
+				$pod = pods( $name );
+				$pod->find();
+				$value = [];
+				while ( $pod->fetch() ) {
+					$location = $pod->field( $field_name, true, true );
+					if ( $location ) {
+						$value[] = $location;
+					}
+				}
+			}
+		}
+	}
 
 	if ( is_callable( array( Pods_Component_Maps::$provider, 'field_display_view' ) ) ) {
 		$view = Pods_Component_Maps::$provider->field_display_view();
