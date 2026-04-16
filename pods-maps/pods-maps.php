@@ -3,7 +3,7 @@
 Plugin Name: Pods Maps
 Plugin URI: http://pods.io/
 Description: Adds map functionality to Pods.
-Version: 1.0
+Version: 2.0-rc1
 Author: Jory Hogeveen
 Author URI: https://www.keraweb.nl
 Text Domain: pods-maps
