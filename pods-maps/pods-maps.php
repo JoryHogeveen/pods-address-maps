@@ -84,13 +84,22 @@ function pods_display_map( $value, $options = array() ) {
 		if ( $field_name ) {
 
 			if ( $name ) {
-				$pod = pods( $name );
-				$pod->find();
-				$value = [];
-				while ( $pod->fetch() ) {
-					$location = $pod->field( $field_name, true, true );
-					if ( $location ) {
-						$value[] = $location;
+
+				$id = pods_v( 'id', $options, null );
+				if ( $id ) {
+					$multiple = false;
+					$value = pods_field_raw( $name, $id, $field_name, true ) );
+				} else {
+					$pod = pods( $name );
+					$allowed_keys = array( 'select', 'order', 'orderby', 'limit', 'offset', 'where', 'having', 'groupby', 'page', 'search' );
+					$find_options = array_intersect_key( $options, array_flip( $allowed_keys ) );
+					$pod->find( $find_options );
+					$value = [];
+					while ( $pod->fetch() ) {
+						$location = $pod->field( $field_name, true, true );
+						if ( $location ) {
+							$value[] = $location;
+						}
 					}
 				}
 			}
