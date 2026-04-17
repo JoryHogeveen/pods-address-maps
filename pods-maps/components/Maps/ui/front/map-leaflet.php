@@ -102,8 +102,10 @@ foreach ( $value as $key => $val ) {
 		'address_html' => '',
 		'info_window'  => '',
 		'marker_icon'  => null,
+		'pod'          => null,
 	) );
 
+	// Allow custom overwrites.
 	if ( 'custom' === pods_v( 'maps_info_window_content', $options, true ) ) {
 		$address_html = '';
 		if ( ! empty( $val['address_html'] ) ) {
@@ -111,14 +113,17 @@ foreach ( $value as $key => $val ) {
 		} elseif ( ! empty( $val['info_window'] ) ) {
 			$address_html = $val['info_window'];
 		}
-	} elseif ( ! isset( $address_html ) || $multiple ) {
+	}
+
+	// Parse format.
+	elseif ( ! isset( $address_html ) || $multiple ) {
+		// @todo Check field type
 		if ( ! empty( $val['info_window'] ) ) {
 			$format = $val['info_window'];
 		} elseif (
-			pods_components()->is_component_active( 'templates' )
+			$val['pod'] instanceof Pods
+			&& pods_components()->is_component_active( 'templates' )
 			&& 'template' === pods_v( 'maps_info_window_content', $options )
-			&& isset( $val['pod'] )
-			&& $val['pod'] instanceof Pods
 		) {
 			$template = get_post( pods_v( 'maps_info_window_template', $options ) );
 			if ( $template instanceof WP_Post ) {
