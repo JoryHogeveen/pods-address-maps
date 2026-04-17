@@ -107,6 +107,21 @@ foreach ( $value as $key => $val ) {
 
 	$val = apply_filters( 'pods_ui_field_address_maps_display_marker', $val, $options );
 
+	$has_valid_geo = is_array( $val['geo'] )
+		&& isset( $val['geo']['lat'], $val['geo']['lng'] )
+		&& is_numeric( $val['geo']['lat'] )
+		&& is_numeric( $val['geo']['lng'] );
+
+	if ( ! $has_valid_geo ) {
+		unset( $value[ $key ] );
+		continue;
+	}
+
+	$val['geo'] = array(
+		'lat' => (float) $val['geo']['lat'],
+		'lng' => (float) $val['geo']['lng'],
+	);
+
 	// Allow custom overwrites.
 	if ( 'custom' === pods_v( 'maps_info_window_content', $options, true ) ) {
 		$address_html = '';
@@ -147,12 +162,12 @@ foreach ( $value as $key => $val ) {
 		$value[ $key ]['marker_icon'] = wp_get_attachment_image_url( $val['marker_icon'], 'full' );
 	}
 
-	if ( is_array( $val['geo'] ) ) {
-		$value[ $key ]['geo'] = array_map( 'floatval', $val['geo'] );
-	}
+	$value[ $key ]['geo'] = $val['geo'];
 
 	unset( $value[ $key ]['pod'] );
 }
+
+$value = array_values( $value );
 
 if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 	$combined_values = array();
@@ -173,7 +188,7 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 ?>
 <div id="<?php echo esc_attr( $attributes['id'] . '-map-canvas' ); ?>"
 	class="pods-maps-map-canvas pods-<?php echo esc_attr( $type ); ?>-maps-map-canvas"
-	data-value="<?php echo esc_attr( json_encode( $value ) ); ?>"></div>
+	data-value="<?php echo esc_attr( wp_json_encode( $value ) ); ?>"></div>
 
 <script type="text/javascript">
 jQuery( document ).ready( function ( $ ) {
@@ -189,21 +204,6 @@ jQuery( document ).ready( function ( $ ) {
 		defaultZoom = <?php echo absint( $map_options['zoom'] ); ?>,
 		markerIconUrl = <?php echo ( ! empty( $map_options['marker'] ) ? '\'' . esc_url( $map_options['marker'] ) . '\'' : 'null' ); ?>;
 
-	function getValidLatLng( item ) {
-		if ( ! item || ! item.hasOwnProperty( 'geo' ) || ! item.geo ) {
-			return null;
-		}
-
-		var lat = parseFloat( item.geo.lat ),
-			lng = parseFloat( item.geo.lng );
-
-		if ( ! isFinite( lat ) || ! isFinite( lng ) ) {
-			return null;
-		}
-
-		return [ lat, lng ];
-	}
-
 	if ( values ) {
 		try {
 			values = JSON.parse( values );
@@ -214,14 +214,8 @@ jQuery( document ).ready( function ( $ ) {
 		return;
 	}
 
-	if ( autoCenter && values.length ) {
-		for ( var idx = 0; idx < values.length; idx++ ) {
-			var initialLatLng = getValidLatLng( values[idx] );
-			if ( initialLatLng ) {
-				defaultCenter = initialLatLng;
-				break;
-			}
-		}
+	if ( autoCenter && values.length && values[0].hasOwnProperty( 'geo' ) ) {
+		defaultCenter = [ values[0].geo.lat, values[0].geo.lng ];
 	}
 
 	var map = L.map( mapCanvas, {
@@ -239,9 +233,7 @@ jQuery( document ).ready( function ( $ ) {
 	var validMarkerCount = 0;
 
 	$.each( values, function( i, val ) {
-		var latLng = getValidLatLng( values[i] );
-
-		if ( ! latLng ) {
+		if ( ! values[i].hasOwnProperty( 'geo' ) ) {
 			return;
 		}
 
@@ -265,8 +257,8 @@ jQuery( document ).ready( function ( $ ) {
 			} );
 		}
 
-		values[i].marker = L.marker( latLng, markerOptions ).addTo( map );
-		bounds.extend( latLng );
+		values[i].marker = L.marker( [ values[i].geo.lat, values[i].geo.lng ], markerOptions ).addTo( map );
+		bounds.extend( [ values[i].geo.lat, values[i].geo.lng ] );
 		validMarkerCount++;
 
 		if ( values[i].address_html ) {

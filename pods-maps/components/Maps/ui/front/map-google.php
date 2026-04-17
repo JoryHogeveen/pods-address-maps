@@ -106,6 +106,21 @@ foreach( $value as $key => $val ) {
 
 	$val = apply_filters( 'pods_ui_field_address_maps_display_marker', $val, $options );
 
+	$has_valid_geo = is_array( $val['geo'] )
+		&& isset( $val['geo']['lat'], $val['geo']['lng'] )
+		&& is_numeric( $val['geo']['lat'] )
+		&& is_numeric( $val['geo']['lng'] );
+
+	if ( ! $has_valid_geo ) {
+		unset( $value[ $key ] );
+		continue;
+	}
+
+	$val['geo'] = array(
+		'lat' => (float) $val['geo']['lat'],
+		'lng' => (float) $val['geo']['lng'],
+	);
+
 	// Allow custom overwrites.
 	if ( 'custom' === pods_v( 'maps_info_window_content', $options, true ) ) {
 		$address_html = '';
@@ -146,12 +161,12 @@ foreach( $value as $key => $val ) {
 		$value[ $key ]['marker_icon'] = wp_get_attachment_image_url( $val['marker_icon'], 'full' );
 	}
 
-	if ( is_array( $val['geo'] ) ) {
-		$value[ $key ]['geo'] = array_map( 'floatval', $val['geo'] );
-	}
+	$value[ $key ]['geo'] = $val['geo'];
 
 	unset( $value[ $key ]['pod'] );
 }
+
+$value = array_values( $value );
 
 if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 
@@ -193,24 +208,6 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 			},
 			marker_icon = <?php echo ( ! empty( $map_options['marker'] ) ? '\'' . esc_url( $map_options['marker'] ) . '\'' : 'null' ) ?>;
 
-		function getValidGeo( item ) {
-			if ( ! item || ! item.hasOwnProperty( 'geo' ) || ! item.geo ) {
-				return null;
-			}
-
-			var lat = parseFloat( item.geo.lat ),
-				lng = parseFloat( item.geo.lng );
-
-			if ( ! isFinite( lat ) || ! isFinite( lng ) ) {
-				return null;
-			}
-
-			return {
-				lat: lat,
-				lng: lng
-			};
-		}
-
 		if ( values ) {
 			try {
 				values = JSON.parse( values );
@@ -224,14 +221,9 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 		//------------------------------------------------------------------------
 		// Initialize the map, set default center to the first item.
 		//
-		if ( autoCenter && values.length ) {
-			for ( var idx = 0; idx < values.length; idx++ ) {
-				latlng = getValidGeo( values[idx] );
-				if ( latlng ) {
-					mapOptions.center = latlng;
-					break;
-				}
-			}
+		if ( autoCenter && values.length && values[0].hasOwnProperty('geo') ) {
+			latlng = values[0].geo;
+			mapOptions.center = new google.maps.LatLng( latlng );
 		}
 
 		var map = new google.maps.Map( mapCanvas, mapOptions );
@@ -247,9 +239,7 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 		//
 		$.each( values, function( i, val ) {
 
-			latlng = getValidGeo( values[ i ] );
-
-			if ( latlng ) {
+			if ( values[ i ].hasOwnProperty('geo') ) {
 
 				//------------------------------------------------------------------------
 				// Initialize marker.
@@ -259,7 +249,7 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 					draggable: false
 				};
 
-				values[ i ].markerOptions.position = latlng;
+				values[ i ].markerOptions.position = values[ i ].geo;
 
 				if ( values[ i ].hasOwnProperty('marker_icon') ) {
 					values[ i ].markerOptions.icon = values[ i ].marker_icon;
