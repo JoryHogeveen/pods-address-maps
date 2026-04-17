@@ -104,6 +104,8 @@ foreach( $value as $key => $val ) {
 		'pod'          => null.
 	) );
 
+	$val = apply_filters( 'pods_ui_field_address_maps_display_marker', $val, $options );
+
 	// Allow custom overwrites.
 	if ( 'custom' === pods_v( 'maps_info_window_content', $options, true ) ) {
 		$address_html = '';
