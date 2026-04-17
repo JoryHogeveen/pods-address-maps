@@ -193,6 +193,24 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 			},
 			marker_icon = <?php echo ( ! empty( $map_options['marker'] ) ? '\'' . esc_url( $map_options['marker'] ) . '\'' : 'null' ) ?>;
 
+		function getValidGeo( item ) {
+			if ( ! item || ! item.hasOwnProperty( 'geo' ) || ! item.geo ) {
+				return null;
+			}
+
+			var lat = parseFloat( item.geo.lat ),
+				lng = parseFloat( item.geo.lng );
+
+			if ( ! isFinite( lat ) || ! isFinite( lng ) ) {
+				return null;
+			}
+
+			return {
+				lat: lat,
+				lng: lng
+			};
+		}
+
 		if ( values ) {
 			try {
 				values = JSON.parse( values );
@@ -206,14 +224,20 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 		//------------------------------------------------------------------------
 		// Initialize the map, set default center to the first item.
 		//
-		if ( autoCenter && values.length && values[0].hasOwnProperty('geo') ) {
-			latlng = values[0].geo;
-			mapOptions.center = new google.maps.LatLng( latlng );
+		if ( autoCenter && values.length ) {
+			for ( var idx = 0; idx < values.length; idx++ ) {
+				latlng = getValidGeo( values[idx] );
+				if ( latlng ) {
+					mapOptions.center = latlng;
+					break;
+				}
+			}
 		}
 
 		var map = new google.maps.Map( mapCanvas, mapOptions );
 		var bounds = new google.maps.LatLngBounds();
 		//var geocoder = new google.maps.Geocoder();
+		var validMarkerCount = 0;
 
 		// If there are more than one markers, do not open an infowindow on load.
 		var autoOpenInfoWindow = ( 1 === values.length );
@@ -223,7 +247,9 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 		//
 		$.each( values, function( i, val ) {
 
-			if ( values[ i ].hasOwnProperty('geo') ) {
+			latlng = getValidGeo( values[ i ] );
+
+			if ( latlng ) {
 
 				//------------------------------------------------------------------------
 				// Initialize marker.
@@ -233,7 +259,7 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 					draggable: false
 				};
 
-				values[ i ].markerOptions.position = values[ i ].geo;
+				values[ i ].markerOptions.position = latlng;
 
 				if ( values[ i ].hasOwnProperty('marker_icon') ) {
 					values[ i ].markerOptions.icon = values[ i ].marker_icon;
@@ -244,6 +270,7 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 				// Add the marker.
 				values[ i ].marker = new google.maps.Marker( values[ i ].markerOptions );
 				bounds.extend( values[ i ].markerOptions.position );
+				validMarkerCount++;
 
 				//------------------------------------------------------------------------
 				// Initialize info window.
@@ -279,7 +306,7 @@ if ( ! empty( $options['maps_combine_equal_geo'] ) ) {
 
 		} );
 
-		if ( 1 < values.length && autoZoom ) {
+		if ( 1 < validMarkerCount && autoZoom ) {
 
 			// Automatic sizing for multiple markers.
 			map.fitBounds( bounds );

@@ -189,6 +189,21 @@ jQuery( document ).ready( function ( $ ) {
 		defaultZoom = <?php echo absint( $map_options['zoom'] ); ?>,
 		markerIconUrl = <?php echo ( ! empty( $map_options['marker'] ) ? '\'' . esc_url( $map_options['marker'] ) . '\'' : 'null' ); ?>;
 
+	function getValidLatLng( item ) {
+		if ( ! item || ! item.hasOwnProperty( 'geo' ) || ! item.geo ) {
+			return null;
+		}
+
+		var lat = parseFloat( item.geo.lat ),
+			lng = parseFloat( item.geo.lng );
+
+		if ( ! isFinite( lat ) || ! isFinite( lng ) ) {
+			return null;
+		}
+
+		return [ lat, lng ];
+	}
+
 	if ( values ) {
 		try {
 			values = JSON.parse( values );
@@ -199,8 +214,14 @@ jQuery( document ).ready( function ( $ ) {
 		return;
 	}
 
-	if ( autoCenter && values.length && values[0].hasOwnProperty( 'geo' ) ) {
-		defaultCenter = [ values[0].geo.lat, values[0].geo.lng ];
+	if ( autoCenter && values.length ) {
+		for ( var idx = 0; idx < values.length; idx++ ) {
+			var initialLatLng = getValidLatLng( values[idx] );
+			if ( initialLatLng ) {
+				defaultCenter = initialLatLng;
+				break;
+			}
+		}
 	}
 
 	var map = L.map( mapCanvas, {
@@ -215,9 +236,12 @@ jQuery( document ).ready( function ( $ ) {
 
 	var bounds = L.latLngBounds();
 	var autoOpenPopup = ( 1 === values.length );
+	var validMarkerCount = 0;
 
 	$.each( values, function( i, val ) {
-		if ( ! values[i].hasOwnProperty( 'geo' ) ) {
+		var latLng = getValidLatLng( values[i] );
+
+		if ( ! latLng ) {
 			return;
 		}
 
@@ -241,8 +265,9 @@ jQuery( document ).ready( function ( $ ) {
 			} );
 		}
 
-		values[i].marker = L.marker( [ values[i].geo.lat, values[i].geo.lng ], markerOptions ).addTo( map );
-		bounds.extend( [ values[i].geo.lat, values[i].geo.lng ] );
+		values[i].marker = L.marker( latLng, markerOptions ).addTo( map );
+		bounds.extend( latLng );
+		validMarkerCount++;
 
 		if ( values[i].address_html ) {
 			values[i].marker.bindPopup( values[i].address_html );
@@ -260,7 +285,7 @@ jQuery( document ).ready( function ( $ ) {
 		}
 	} );
 
-	if ( values.length > 1 && autoZoom && bounds.isValid() ) {
+	if ( validMarkerCount > 1 && autoZoom && bounds.isValid() ) {
 		map.fitBounds( bounds );
 		if ( map.getZoom() > defaultZoom ) {
 			map.setZoom( defaultZoom );
