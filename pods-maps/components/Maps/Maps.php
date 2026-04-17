@@ -446,6 +446,13 @@ class Pods_Component_Maps extends PodsComponent {
 	 * @return string
 	 */
 	public function filter_pods_ui_field_address_display_value( $output, $value, $view, $display_type, $name, $options, $pod, $id ) {
+		static $prevent_recursion = false;
+
+		if ( $prevent_recursion ) {
+			return $output;
+		}
+
+		$prevent_recursion = true;
 
 		if ( pods_v( 'maps', $options ) && 'admin' !== pods_v( 'maps_display', $options ) ) {
 			$view     = '';
@@ -469,6 +476,8 @@ class Pods_Component_Maps extends PodsComponent {
 				}
 			}
 		}
+
+		$prevent_recursion = false;
 
 		return $output;
 
