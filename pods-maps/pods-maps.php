@@ -143,15 +143,5 @@ function pods_display_map( $value, $options = array() ) {
 		}
 	}
 
-	if ( is_callable( array( Pods_Component_Maps::$provider, 'field_display_view' ) ) ) {
-		$view = Pods_Component_Maps::$provider->field_display_view();
-	}
-
-	if ( $view && file_exists( $view ) ) {
-		// Add hidden lat/lng fields for non latlng view types
-		$maps_value = pods_view( $view, compact( array_keys( get_defined_vars() ) ), false, 'cache', true );
-
-		return $maps_value;
-	}
-	return '';
+	return Pods_Component_Maps::display_map( compact( array_keys( get_defined_vars() ) ) );
 }

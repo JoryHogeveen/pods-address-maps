@@ -432,6 +432,38 @@ class Pods_Component_Maps extends PodsComponent {
 	}
 
 	/**
+	 * Display the map based on the provided data and options
+	 *
+	 * @param array $value
+	 * @param array $options
+	 *
+	 * @return string
+	 */
+	public static function display_map( $args = array() ) {
+		static $prevent_recursion = false;
+
+		if ( $prevent_recursion ) {
+			return '';
+		}
+
+		$prevent_recursion = true;
+
+		$display = '';
+		$view = null;
+		if ( is_callable( array( self::$provider, 'field_display_view' ) ) ) {
+			$view = self::$provider->field_display_view();
+		}
+
+		if ( $view && file_exists( $view ) ) {
+			// Add hidden lat/lng fields for non latlng view types
+			$display = pods_view( $view, compact( array_keys( get_defined_vars() ) ), false, 'cache', true );
+		}
+
+		$prevent_recursion = false;
+		return $display;
+	}
+
+	/**
 	 * Add/Change the display value
 	 *
 	 * @param $value
@@ -446,33 +478,17 @@ class Pods_Component_Maps extends PodsComponent {
 	 * @return string
 	 */
 	public function filter_pods_ui_field_address_display_value( $output, $value, $view, $display_type, $name, $options, $pod, $id ) {
-		static $prevent_recursion = false;
-
-		if ( $prevent_recursion ) {
-			return $output;
-		}
-
-		$prevent_recursion = true;
 
 		if ( pods_v( 'maps', $options ) && 'admin' !== pods_v( 'maps_display', $options ) ) {
-			$view     = '';
+			$display = $this->display_map( compact( array_keys( get_defined_vars() ) ) );
 
-			if ( is_callable( array( self::$provider, 'field_display_view' ) ) ) {
-				$view = self::$provider->field_display_view();
-			}
-
-			if ( $view && file_exists( $view ) ) {
-				// Add hidden lat/lng fields for non latlng view types
-				$maps_value = pods_view( $view, compact( array_keys( get_defined_vars() ) ), false, 'cache', true );
-
-				$maps_display = pods_v( 'maps_display', $options, 'replace', true );
-
+			if ( $display ) {
 				if ( 'before' === $maps_display ) {
-					$output = $maps_value . $output;
+					$output = $display . $output;
 				} elseif ( 'after' === $maps_display ) {
-					$output .= $maps_value;
+					$output .= $display;
 				} else {
-					$output = $maps_value;
+					$output = $display;
 				}
 			}
 		}
