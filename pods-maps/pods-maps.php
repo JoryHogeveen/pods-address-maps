@@ -83,7 +83,24 @@ function pods_display_map( $value, $options = array() ) {
 
 		if ( $field_name ) {
 
+			$merge_field_options = function ( $field_options ) use ( $options ) {
+				foreach ( $field_options as $name => $value ) {
+					if ( strpos( $name, 'maps_' ) === 0 && ! isset( $options[ $name ] ) ) {
+						$options[ $name ] = $value;
+					}
+				}
+
+				return $options;
+			};
+
 			if ( $name ) {
+
+				$pod = pods( $name );
+				$field = $pod->fields( $field_name );
+
+				if ( $field ) {
+					$options = $merge_field_options( $field->get_args() );
+				}
 
 				$id = pods_v( 'id', $options, null );
 				if ( $id ) {
@@ -98,6 +115,7 @@ function pods_display_map( $value, $options = array() ) {
 					while ( $pod->fetch() ) {
 						$location = $pod->field( $field_name, true, true );
 						if ( $location ) {
+							$location['pod'] = pods( $name, $pod->id() );
 							$value[] = $location;
 						}
 					}
@@ -105,14 +123,19 @@ function pods_display_map( $value, $options = array() ) {
 
 			} elseif ( is_singular() ) {
 				$multiple = false;
-				$value = pods_field_raw( $name ?: null, null, $field_name, true );
+				$value = pods_field_raw( get_post_type(), get_the_ID(), $field_name, true );
+				if ( $value ) {
+					$value['pod'] = pods( get_post_type(), get_the_ID() );
+				}
 			} elseif ( is_archive() ) {
 				$value = [];
 				$posts = get_posts();
 
 				foreach ( $posts as $post ) {
-					$location = pods_field_raw( $name ?: null, pods_v( 'ID', $post ), $field_name, true );
+					$_pod = pods( $post->post_type, $post );
+					$location = pods_field_raw( $_pod, $post, $field_name, true );
 					if ( $location ) {
+						$location['pod'] = $_pod;
 						$value[] = $location;
 					}
 				}
